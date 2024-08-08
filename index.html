@@ -13,6 +13,17 @@
 <body ng-app="myApp">
     <h1 class="text-center">GPA Calculator</h1>
     <main class="container" ng-controller="myCtrl">
+        <div class="m-5">
+            <select id="department" class="form-select" ng-model="selectedDepartment" ng-change="loadDepartmentData()">
+                <option value="" disabled>Select your department</option>
+                <option value="cse">Computer Science and Engineering (CSE)</option>
+                <option value="ece">Electronics and Communication Engineering (ECE)</option>
+                <option value="eee">Electrical and Electronics Engineering (EEE)</option>
+                <!-- Add more options as needed -->
+            </select>
+        </div>
+    
+    
         <div class="accordion accordion-flush" id="accordionExample">
             <div class="accordion-item" ng-repeat="sem in sem_data">
                 <h2 class="accordion-header">

@@ -12,24 +12,50 @@ app.controller('myCtrl', function($scope, $http) {
         { 'value': '0', 'name': 'RA/U/AB' }
     ];
 
-    // Load data from JSON file directly
-    $http.get('data1.json').then(function(response) {
-        $scope.sem_data = response.data.semesters;
-        console.log("Data loaded from JSON:", $scope.sem_data);
+    // Load the selected department from local storage if it exists
+    $scope.selectedDepartment = window.localStorage.getItem('selectedDepartment') || '';
 
-        let local_data = JSON.parse(window.localStorage.getItem('result'));
-        if (local_data) {
-            for (let sem in $scope.sem_data) {
-                for (let sub in $scope.sem_data[sem]) {
-                    $scope.sem_data[sem][sub].grade = local_data[$scope.sem_data[sem][sub].course_code] || "";
-                }
+    // Function to load department-specific data
+    $scope.loadDepartmentData = function() {
+        if ($scope.selectedDepartment) {
+            // Save the selected department to local storage
+            window.localStorage.setItem('selectedDepartment', $scope.selectedDepartment);
+
+            let departmentFile = ''; // Initialize the variable for the file name
+
+            // Determine the JSON file based on the selected department
+            if ($scope.selectedDepartment === 'cse') {
+                departmentFile = 'data1.json';
+            } else if ($scope.selectedDepartment === 'ece') {
+                departmentFile = 'data2.json';
+            } else if ($scope.selectedDepartment === 'eee') {
+                departmentFile = 'data3.json';
+            }
+            // Add more conditions if you have more departments
+
+            if (departmentFile) {
+                $http.get(departmentFile).then(function(response) {
+                    $scope.sem_data = response.data.semesters;
+                    console.log("Data loaded from JSON:", $scope.sem_data);
+
+                    let local_data = JSON.parse(window.localStorage.getItem('result'));
+                    if (local_data) {
+                        for (let sem in $scope.sem_data) {
+                            for (let sub in $scope.sem_data[sem]) {
+                                $scope.sem_data[sem][sub].grade = local_data[$scope.sem_data[sem][sub].course_code] || "";
+                            }
+                        }
+                    }
+
+                    $scope.calc(); // Recalculate based on loaded data
+                }).catch(function(error) {
+                    console.error("Error loading JSON data:", error);
+                });
+            } else {
+                console.error("Invalid department selected or no file available for this department.");
             }
         }
-
-        $scope.calc(); // Recalculate based on loaded data
-    }).catch(function(error) {
-        console.error("Error loading JSON data:", error);
-    });
+    };
 
     $scope.calc = function() {
         let data = [];
@@ -55,7 +81,7 @@ app.controller('myCtrl', function($scope, $http) {
             total_points += points;
 
             data.push({
-                "sem": sem,
+                "sem": parseInt(sem) + 1, // Display semester number starting from 1
                 "sgpa": ((sgpa / points) || 0).toFixed(2),
                 "cgpa": ((cgpa / total_points) || 0).toFixed(2)
             });
@@ -63,4 +89,10 @@ app.controller('myCtrl', function($scope, $http) {
         $scope.result = data;
         window.localStorage.setItem('result', JSON.stringify(final_data));
     };
+
+    // Automatically load data for the stored department when the page loads
+    if ($scope.selectedDepartment) {
+        // Call the loadDepartmentData function explicitly to update the data and title
+        $scope.loadDepartmentData();
+    }
 });
