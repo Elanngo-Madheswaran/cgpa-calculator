@@ -12,7 +12,18 @@
 </head>
 
 <body ng-app="myApp">
-    <h1 class="text-center">GPA Calculator (CSE)</h1>
+    <h1 class="text-center">GPA Calculator</h1>
+
+    <div class="container">
+        <div class="text-center my-3">
+            <label for="departmentSelect" class="form-label">Select Department:</label>
+            <select id="departmentSelect" class="form-select" ng-model="selectedDepartment" ng-change="loadData()">
+                <option value="">Select</option>
+                <option value="cse" selected>CSE</option>
+                <option value="ece">ECE</option>
+            </select>
+        </div>
+    </div>
     <main class="container" ng-controller="myCtrl">
         <div class="accordion accordion-flush" id="accordionExample">
             <div class="accordion-item" ng-repeat="sem in sem_data">
