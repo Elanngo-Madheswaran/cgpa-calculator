@@ -12,28 +12,24 @@ app.controller('myCtrl', function($scope, $http) {
         { 'value': '0', 'name': 'RA/U/AB' }
     ];
 
-    $scope.loadData = function() {
-        if ($scope.selectedDepartment) {
-            let fileName = $scope.selectedDepartment === 'cse' ? 'data1.json' : 'data2.json';
+    // Load data from JSON file directly
+    $http.get('data1.json').then(function(response) {
+        $scope.sem_data = response.data.semesters;
+        console.log("Data loaded from JSON:", $scope.sem_data);
 
-            $http.get(fileName).then(function(response) {
-                $scope.sem_data = response.data.semesters;
-
-                let local_data = JSON.parse(window.localStorage.getItem('result'));
-                if (local_data) {
-                    for (let sem in $scope.sem_data) {
-                        for (let sub in $scope.sem_data[sem]) {
-                            $scope.sem_data[sem][sub].grade = local_data[$scope.sem_data[sem][sub].course_code] || "";
-                        }
-                    }
+        let local_data = JSON.parse(window.localStorage.getItem('result'));
+        if (local_data) {
+            for (let sem in $scope.sem_data) {
+                for (let sub in $scope.sem_data[sem]) {
+                    $scope.sem_data[sem][sub].grade = local_data[$scope.sem_data[sem][sub].course_code] || "";
                 }
-
-                $scope.calc(); // Recalculate based on loaded data
-            });
-        } else {
-            $scope.sem_data = {};
+            }
         }
-    };
+
+        $scope.calc(); // Recalculate based on loaded data
+    }).catch(function(error) {
+        console.error("Error loading JSON data:", error);
+    });
 
     $scope.calc = function() {
         let data = [];
