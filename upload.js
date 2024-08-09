@@ -1,6 +1,6 @@
 var app = angular.module('myApp', []);
 
-app.controller('myCtrl', function($scope) {
+app.controller('myCtrl', function($scope, $http) {
     // Define grades with their corresponding grade points
     $scope.grades = [
         { 'value': '', 'name': 'Grade' },
@@ -24,21 +24,20 @@ app.controller('myCtrl', function($scope) {
         'ra/u/ab': 0
     };
 
-    $scope.semesters = {
-        "1": [
-            { "name": "Communicative English", "course_code": "22ENT11", "credit": 3 },
-            { "name": "Engineering Physics", "course_code": "22PHT11", "credit": 3 },
-            // Add more subjects as necessary
-        ],
-        "2": [
-            { "name": "Professional English", "course_code": "22ENT21", "credit": 3 },
-            { "name": "Probability and Statistics", "course_code": "22MAT22", "credit": 4 },
-            // Add more subjects as necessary
-        ],
-        // Add more semesters as necessary
-    };
+    // Load semesters data from JSON file
+    $http.get('cse.json').then(function(response) {
+        $scope.semesters = response.data.semesters;
+        console.log("Semesters Data Loaded:", $scope.semesters); // Debugging line
+    }).catch(function(error) {
+        console.error('Error loading semester data:', error);
+    });
 
     $scope.displayTemplate = function() {
+        if (!$scope.selectedSemester || !$scope.semesters[$scope.selectedSemester]) {
+            console.error('Selected semester is invalid or data is not loaded.');
+            return;
+        }
+
         const semester = $scope.selectedSemester;
         const subjects = $scope.semesters[semester];
 
@@ -73,8 +72,13 @@ app.controller('myCtrl', function($scope) {
                     let totalCredits = 0;
                     let weightedSum = 0;
 
+                    if (!$scope.semesters[$scope.selectedSemester]) {
+                        console.error('No subjects data available for the selected semester.');
+                        return { name: student['Student Name'], sgpa: 'Error' };
+                    }
+
                     $scope.semesters[$scope.selectedSemester].forEach(subject => {
-                        const gradeText = (student[subject.name] || '').toLowerCase();
+                        const gradeText = (student[subject.name] || '').trim().toLowerCase();
                         const credit = subject.credit;
 
                         // Convert grade text to grade points
