@@ -68,7 +68,7 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>{{$index + 1}}</td>
+                                    <td>{{$index+1}}</td>
                                     <td>{{result[$index].sgpa}}</td>
                                     <td>{{result[$index].cgpa}}</td>
                                 </tr>
@@ -88,7 +88,7 @@
                 </thead>
                 <tbody>
                     <tr ng-repeat="sem in result">
-                        <td>{{sem.sem}}</td>
+                        <td>{{sem.sem -1}}</td>
                         <td>{{sem.sgpa}}</td>
                         <td>{{sem.cgpa}}</td>
                     </tr>
