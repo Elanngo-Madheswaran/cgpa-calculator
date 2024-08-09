@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="myApp">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <title>Upload and Calculate SGPA</title>
+</head>
+
+<body ng-controller="myCtrl">
+
+    <div class="container mt-5">
+        <h1 class="text-center">Upload Excel File and Calculate SGPA</h1>
+
+        <!-- Semester Selection -->
+        <div class="mb-3">
+            <label for="semesterSelect" class="form-label">Select Semester</label>
+            <select id="semesterSelect" class="form-select" ng-model="selectedSemester" ng-change="displayTemplate()">
+                <option value="" disabled>Select Semester</option>
+                <option ng-repeat="(key, value) in semesters" value="{{key}}">Semester {{key}}</option>
+            </select>
+        </div>
+
+        <!-- Display Template Table -->
+        <div class="mt-5" ng-if="templateHeaders.length > 0">
+            <h2>Template for Semester {{selectedSemester}}</h2>
+            <table class="table table-dark table-striped table-hover table-bordered border-light table-sm">
+                <thead>
+                    <tr>
+                        <th class="fs-6">Student Name</th>
+                        <th ng-repeat="header in templateHeaders" class="fs-6">{{header}}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="row in templateData">
+                        <td class="fs-6">{{row.name}}</td>
+                        <td ng-repeat="header in templateHeaders" class="fs-6">
+                            <input type="text" ng-model="row[header]" class="form-control" placeholder="e.g., o, a+, a">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- File Upload -->
+        <div class="mt-5">
+            <input type="file" id="fileInput" class="form-control" accept=".xlsx" onchange="angular.element(this).scope().handleFile(this)">
+        </div>
+
+        <!-- Results -->
+        <div class="mt-5" ng-if="results.length > 0">
+            <h2>SGPA Results</h2>
+            <table class="table table-success table-striped table-hover table-bordered border-success table-sm">
+                <thead>
+                    <tr>
+                        <th class="fs-6">Student Name</th>
+                        <th class="fs-6">SGPA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="result in results">
+                        <td class="fs-6">{{result.name}}</td>
+                        <td class="fs-6">{{result.sgpa}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="upload.js"></script>
+</body>
+
+</html>
