@@ -27,22 +27,25 @@
         <!-- Display Template Table -->
         <div class="mt-5" ng-if="templateHeaders.length > 0">
             <h2>Template for Semester {{selectedSemester}}</h2>
-            <table class="table table-dark table-striped table-hover table-bordered border-light table-sm">
-                <thead>
-                    <tr>
-                        <th class="fs-6">Student Name</th>
-                        <th ng-repeat="header in templateHeaders" class="fs-6">{{header}}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr ng-repeat="row in templateData">
-                        <td class="fs-6">{{row.name}}</td>
-                        <td ng-repeat="header in templateHeaders" class="fs-6">
-                            
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-dark table-striped table-hover table-bordered border-light table-sm">
+                    <thead>
+                        <tr>
+                            <th class="fs-6">Student Name</th>
+                            <th ng-repeat="header in templateHeaders" class="fs-6">{{header}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="row in templateData">
+                            <td class="fs-6">{{row.name}}</td>
+                            <td ng-repeat="header in templateHeaders" class="fs-6">
+                                
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+            </div>
         </div>
 
         <!-- File Upload -->
