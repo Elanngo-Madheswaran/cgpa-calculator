@@ -12,8 +12,19 @@
 </head>
 
 <body ng-app="myApp">
-    <a href="upload.html">For bulk upload</a>
-    <h1 class="text-center">GPA Calculator</h1>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary text-center">
+        <div class="container-fluid">
+          <a class="navbar-brand fw-bold fs-3" href="#">GPA Calculator</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+                <a class="nav-link text-success mt-md-2" href="upload.html">Excel upload</a>
+            </div>
+          </div>
+        </div>
+      </nav>
     <main class="container" ng-controller="myCtrl">
         <div class="m-5">
             <select id="department" class="form-select" ng-model="selectedDepartment" ng-change="loadDepartmentData()">

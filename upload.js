@@ -44,6 +44,16 @@ app.controller('myCtrl', function($scope, $http) {
         $scope.templateHeaders = subjects.map(sub => sub.name);
         $scope.templateData = []; // Reset template data
 
+        // Clear results, uploaded data, and file input
+        $scope.results = [];
+        $scope.uploadedData = [];
+
+        // Clear file input element
+        const fileInput = document.getElementById('fileInput');
+        if (fileInput) {
+            fileInput.value = ''; // Reset file input
+        }
+
         // Pre-fill with some student names (dummy data)
         for (let i = 1; i <= 3; i++) { // Adjust number of students as needed
             let studentData = { name: 'Student ' + i };
@@ -68,6 +78,10 @@ app.controller('myCtrl', function($scope, $http) {
             console.log("Excel Data:", jsonData); // Debugging line
 
             $scope.$apply(function() {
+                // Save uploaded data
+                $scope.uploadedData = jsonData;
+
+                // Calculate results based on uploaded data and selected semester
                 $scope.results = jsonData.map(student => {
                     let totalCredits = 0;
                     let weightedSum = 0;
@@ -98,5 +112,30 @@ app.controller('myCtrl', function($scope, $http) {
         };
 
         reader.readAsBinaryString(file);
+    };
+
+    // Function to download results as an Excel file
+    $scope.downloadResults = function() {
+        if ($scope.results.length === 0) {
+            alert('No results available to download.');
+            return;
+        }
+
+        // Filter out $$hashKey and other unwanted properties
+        const filteredResults = $scope.results.map(result => {
+            const { $$hashKey, ...filteredResult } = result; // Remove $$hashKey
+            return filteredResult;
+        });
+
+        // Prepare data for the Excel file
+        const ws = XLSX.utils.json_to_sheet(filteredResults, {
+            header: ['name', 'sgpa'],
+            skipHeader: false
+        });
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'SGPA Results');
+        
+        // Generate Excel file and trigger download
+        XLSX.writeFile(wb, 'SGPA_Results.xlsx');
     };
 });

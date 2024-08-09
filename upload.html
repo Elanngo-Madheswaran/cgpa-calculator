@@ -39,17 +39,17 @@
                         <tr ng-repeat="row in templateData">
                             <td class="fs-6">{{row.name}}</td>
                             <td ng-repeat="header in templateHeaders" class="fs-6">
-                                
+                                <!-- Cells are empty for user input -->
                             </td>
                         </tr>
                     </tbody>
                 </table>
-                
             </div>
         </div>
 
         <!-- File Upload -->
         <div class="mt-5">
+            <label for="fileInput" class="mb-2">Upload the excel file</label>
             <input type="file" id="fileInput" class="form-control" accept=".xlsx" onchange="angular.element(this).scope().handleFile(this)">
         </div>
 
@@ -70,6 +70,8 @@
                     </tr>
                 </tbody>
             </table>
+            <!-- Download Button -->
+            <button class="btn btn-primary mt-3" ng-click="downloadResults()">Download Results</button>
         </div>
     </div>
 
