@@ -1,0 +1,371 @@
+{
+    "semesters":{
+        "1": [
+            {
+                "name": "Communicative English",
+                "course_code": "22ENT11",
+                "credit": 3,
+                "grade": ""
+            },
+            {
+                "name": "Engineering Physics",
+                "course_code": "22PHT11",
+                "credit": 3,
+                "grade": ""
+            },
+            {
+                "name": "Mathematics and Differential Calculus",
+                "course_code": "22MAT11",
+                "credit": 4,
+                "grade": ""
+            },
+            {
+                "name": "Engineering Chemistry",
+                "course_code": "22CYT11",
+                "credit": 3,
+                "grade": ""
+            },
+            {
+                "name": "Python Programming",
+                "course_code": "22CST13",
+                "credit": 3,
+                "grade": ""
+            },
+            {
+                "name": "Engineering Graphics",
+                "course_code": "22MEC11",
+                "credit": 4,
+                "grade": ""
+            },
+            {
+                "name": "Physics and Chemistry Laboratory",
+                "course_code": "22PHL11",
+                "credit": 1,
+                "grade": ""
+            },
+            {
+                "name": "Python Programming Laboratory",
+                "course_code": "22CSL11",
+                "credit": 1,
+                "grade": ""
+            }
+        ],
+                "2": [
+    {
+        "name": "Professional English",
+        "course_code": "22ENT21",
+        "credit": 3,
+        "grade": ""
+    },
+    {
+        "name": "Probability and Statistics",
+        "course_code": "22MAT22",
+        "credit": 4,
+        "grade": ""
+    },
+    {
+        "name": "Physics for Information Sciences",
+        "course_code": "22PHT22",
+        "credit": 3,
+        "grade": ""
+    },
+    {
+        "name": "Basics of Electrical and Electronics Engineering",
+        "course_code": "22EET11",
+        "credit": 3,
+        "grade": ""
+    },
+    {
+        "name": "C Programming",
+        "course_code": "22ITT21",
+        "credit": 3,
+        "grade": ""
+    },
+    {
+        "name": "தமிழர்மரபு / Heritage of Tamils",
+        "course_code": "22HST11",
+        "credit": 1,
+        "grade": ""
+    },
+    {
+        "name": "Physics And Chemistry Laboratory II",
+        "course_code": "22PHL21",
+        "credit": 1,
+        "grade": ""
+    },
+    {
+        "name": "C Programming Laboratory",
+        "course_code": "22ITL21",
+        "credit": 1,
+        "grade": ""
+    },
+    {
+        "name": "Engineering Practices Laboratory",
+        "course_code": "22EEL22",
+        "credit": 1,
+        "grade": ""
+    }
+]
+,
+                "3": [
+                    {
+                        "name": "Discrete Mathematics",
+                        "course_code": "22MAT34",
+                        "credit": 4,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Java Programming",
+                        "course_code": "22CST31",
+                        "credit": 3,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Data Structures using Python",
+                        "course_code": "22CST32",
+                        "credit": 3,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Foundations of Data Science",
+                        "course_code": "22CST32",
+                        "credit": 3,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Digital Principles and Computer Organuzation",
+                        "course_code": "22CSC32",
+                        "credit": 4,
+                        "grade": ""
+                    },
+                    {
+                        "name": "தமிழரும் தொழில் நுட்பமும் / Tamils and Technology",
+                        "course_code": "22HST21",
+                        "credit": 1,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Java Programming Laboratory",
+                        "course_code": "22CSL31",
+                        "credit": 1,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Data Structures using Python Laboratory",
+                        "course_code": "22CSL32",
+                        "credit": 1,
+                        "grade": ""
+                    }
+                ],
+                "4": [
+                    {
+                        "name": "Optimization Techniques and Queueing Theory",
+                        "course_code": "22MAT42",
+                        "credit": 4,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Operating Systems",
+                        "course_code": "22CSC41",
+                        "credit": 4,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Database Management Systems",
+                        "course_code": "22CST41",
+                        "credit": 3,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Design and Analysis of Algorithms",
+                        "course_code": "22CST42",
+                        "credit": 4,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Object Oriented Software Engineering",
+                        "course_code": "22CSC42",
+                        "credit": 4,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Web Programming",
+                        "course_code": "22CST43",
+                        "credit": 3,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Database Management Systems Laboratory",
+                        "course_code": "21CSL41",
+                        "credit": 1,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Web Programming Laboratory",
+                        "course_code": "22CSL42",
+                        "credit": 1,
+                        "grade": ""
+                    }
+                ],
+                "5": [
+                    {
+                        "name": "Computer Networks",
+                        "course_code": "22CST51",
+                        "credit": 3,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Theory of Computations",
+                        "course_code": "22CST52",
+                        "credit": 4,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Artificial Intelligence and Machine Learning",
+                        "course_code": "22CST53",
+                        "credit": 3,
+                        "grade": ""
+                    },
+                    {
+                        "name": "PE - 1 (EDA)",
+                        "course_code": "",
+                        "credit": 3,
+                        "grade": ""
+                    },
+                    {
+                        "name": "PE - 2 (Ui/ux)",
+                        "course_code": "",
+                        "credit": 3,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Open Elective 1 (5g)",
+                        "course_code": "",
+                        "credit": 3,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Computer Networks Laboratory",
+                        "course_code": "22CSL51",
+                        "credit": 1,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Artificial Intelligence and Machine Learning Laboratory",
+                        "course_code": "22CSL52",
+                        "credit": 1,
+                        "grade": ""
+                    }
+                ],
+                "6": [
+                    {
+                        "name": "Compiler Design",
+                        "course_code": "22CST61",
+                        "credit": 3,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Big Data Analytics",
+                        "course_code": "22CST62",
+                        "credit": 4,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Mobile Application Development",
+                        "course_code": "22CST63",
+                        "credit": 3,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Professional Elective 3",
+                        "course_code": "",
+                        "credit": 3,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Professional Elective 4",
+                        "course_code": "",
+                        "credit": 3,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Open Elective 2 ",
+                        "course_code": "",
+                        "credit": 3,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Mobile Application Development Laboratory",
+                        "course_code": "22CSL61",
+                        "credit": 1,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Mini Project",
+                        "course_code": "22CSL62",
+                        "credit": 3,
+                        "grade": ""
+                    }
+                ],
+                "7": [
+                    {
+                        "name": "Economics and Management for Engineers",
+                        "course_code": "22CST71",
+                        "credit": 3,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Cryptography and Cyber Security",
+                        "course_code": "22CST72",
+                        "credit": 3,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Professional Elective 5",
+                        "course_code": "",
+                        "credit": 3,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Professional Elective 6",
+                        "course_code": "",
+                        "credit": 3,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Open Elective 3",
+                        "course_code": "",
+                        "credit": 3,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Human Values and Professional Ethics",
+                        "course_code": "22HST71",
+                        "credit": 1,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Security Laboratory",
+                        "course_code": "22CSL71",
+                        "credit": 1,
+                        "grade": ""
+                    }
+                ],
+                "8": [
+                    {
+                        "name": "Intership",
+                        "course_code": "22CSL81",
+                        "credit": 2,
+                        "grade": ""
+                    },
+                    {
+                        "name": "Project Work",
+                        "course_code": "22CSL82",
+                        "credit": 10,
+                        "grade": ""
+                    }
+                ]
+    }
+}
+
+

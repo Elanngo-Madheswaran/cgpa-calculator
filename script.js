@@ -25,7 +25,7 @@ app.controller('myCtrl', function($scope, $http) {
 
             // Determine the JSON file based on the selected department
             if ($scope.selectedDepartment === 'cse') {
-                departmentFile = 'data1.json';
+                departmentFile = 'cse.json';
             } else if ($scope.selectedDepartment === 'ece') {
                 departmentFile = 'data2.json';
             } else if ($scope.selectedDepartment === 'eee') {
