@@ -138,4 +138,29 @@ app.controller('myCtrl', function($scope, $http) {
         // Generate Excel file and trigger download
         XLSX.writeFile(wb, 'SGPA_Results.xlsx');
     };
+
+    // Function to download the template as an Excel file
+    $scope.downloadTemplate = function() {
+        if (!$scope.templateHeaders || $scope.templateHeaders.length === 0) {
+            alert('No template available to download.');
+            return;
+        }
+
+        // Prepare data for the Excel file
+        const templateDataForExcel = $scope.templateData.map(row => {
+            const newRow = {};
+            newRow['Student Name'] = row.name;
+            $scope.templateHeaders.forEach(header => {
+                newRow[header] = ''; // Initialize with empty values
+            });
+            return newRow;
+        });
+
+        const ws = XLSX.utils.json_to_sheet(templateDataForExcel);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Semester ' + $scope.selectedSemester + ' Template');
+        
+        // Generate Excel file and trigger download
+        XLSX.writeFile(wb, 'Semester_' + $scope.selectedSemester + '_Template.xlsx');
+    };
 });
