@@ -1,166 +1,102 @@
-var app = angular.module('myApp', []);
+var app = angular.module('sgpaApp', []);
 
-app.controller('myCtrl', function($scope, $http) {
-    // Define grades with their corresponding grade points
-    $scope.grades = [
-        { 'value': '', 'name': 'Grade' },
-        { 'value': '10', 'name': 'O' },
-        { 'value': '9', 'name': 'A+' },
-        { 'value': '8', 'name': 'A' },
-        { 'value': '7', 'name': 'B+' },
-        { 'value': '6', 'name': 'B' },
-        { 'value': '5', 'name': 'C' },
-        { 'value': '0', 'name': 'RA/U/AB' }
-    ];
-
-    // Create a mapping from grade names to grade points
-    $scope.gradeMap = {
-        'o': 10,
-        'a+': 9,
-        'a': 8,
-        'b+': 7,
-        'b': 6,
-        'c': 5,
-        'ra/u/ab': 0
+app.directive('fileReader', function () {
+    return {
+      scope: {
+        fileReader: "&"
+      },
+      link: function (scope, element) {
+        element.on('change', function (changeEvent) {
+          var reader = new FileReader();
+          reader.onload = function (e) {
+            scope.$apply(function () {
+              scope.fileReader({ $fileContent: e.target.result });
+            });
+          };
+          // Use ArrayBuffer to support binary Excel parsing
+          reader.readAsArrayBuffer(changeEvent.target.files[0]);
+        });
+      }
     };
+  });
+  
 
-    // Load semesters data from JSON file
-    $http.get('cse.json').then(function(response) {
-        $scope.semesters = response.data.semesters;
-        console.log("Semesters Data Loaded:", $scope.semesters); // Debugging line
-    }).catch(function(error) {
-        console.error('Error loading semester data:', error);
+app.controller('SGPAController', function ($scope, $http) {
+  $scope.subjectData = {};
+  $scope.templateHeaders = [];
+  $scope.templateSample = { name: "John Doe" };
+  $scope.results = [];
+
+  $scope.loadJSON = function () {
+    $http.get($scope.selectedDepartment + '.json').then(function (res) {
+      $scope.subjectData = res.data;
     });
+  };
 
-    $scope.displayTemplate = function() {
-        if (!$scope.selectedSemester || !$scope.semesters[$scope.selectedSemester]) {
-            console.error('Selected semester is invalid or data is not loaded.');
-            return;
-        }
+  $scope.generateTemplate = function () {
+    const subjects = $scope.subjectData.semesters[$scope.selectedSemester];
+    $scope.templateHeaders = subjects.map(s => s.name);
+    $scope.templateSample = { name: "John Doe" };
+    $scope.templateHeaders.forEach(name => {
+      $scope.templateSample[name] = '';
+    });
+  };
 
-        const semester = $scope.selectedSemester;
-        const subjects = $scope.semesters[semester];
+  $scope.downloadTemplate = function () {
+    const headers = ['Student Name', ...$scope.templateHeaders];
+    const sampleRow = ['John Doe', ...$scope.templateHeaders.map(() => '')];
+    
+    const worksheetData = [headers, sampleRow];
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Template');
 
-        $scope.templateHeaders = subjects.map(sub => sub.name);
-        $scope.templateData = []; // Reset template data
+    XLSX.writeFile(workbook, 'SGPA_Template.xlsx');
+  };
 
-        // Clear results, uploaded data, and file input
-        $scope.results = [];
-        $scope.uploadedData = [];
+  $scope.processExcel = function (content) {
+    const workbook = XLSX.read(content, { type: 'array' });
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+  
+    const subjects = $scope.subjectData.semesters[$scope.selectedSemester];
+  
+    $scope.results = jsonData.map(row => {
+      let name = row['Student Name'] || row['Name'];
+      let totalCredits = 0;
+      let weightedSum = 0;
+  
+      subjects.forEach((subject, i) => {
+        const grade = row[subject.name];
+        const credit = subject.credit;
+        const gradePoint = convertGradeToPoint(grade);
+        weightedSum += gradePoint * credit;
+        totalCredits += credit;
+      });
+  
+      return {
+        name,
+        sgpa: (weightedSum / totalCredits).toFixed(2)
+      };
+    });
+  };
+  
 
-        // Clear file input element
-        const fileInput = document.getElementById('fileInput');
-        if (fileInput) {
-            fileInput.value = ''; // Reset file input
-        }
+  $scope.downloadResults = function () {
+    const headers = ['Student Name', 'SGPA'];
+    const rows = $scope.results.map(r => [r.name, r.sgpa]);
 
-        // Pre-fill with some student names (dummy data)
-        for (let i = 1; i <= 3; i++) { // Adjust number of students as needed
-            let studentData = { name: 'Student ' + i };
-            subjects.forEach(sub => {
-                studentData[sub.name] = ''; // Initialize with empty values
-            });
-            $scope.templateData.push(studentData);
-        }
-    };
+    const worksheetData = [headers, ...rows];
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'SGPA Results');
 
-    $scope.handleFile = function(input) {
-        const file = input.files[0];
-        const reader = new FileReader();
-        
-        reader.onload = function(event) {
-            const data = event.target.result;
-            const workbook = XLSX.read(data, { type: 'binary' });
-            const sheetName = workbook.SheetNames[0];
-            const sheet = workbook.Sheets[sheetName];
-            const jsonData = XLSX.utils.sheet_to_json(sheet);
+    XLSX.writeFile(workbook, 'SGPA_Results.xlsx');
+  };
 
-            console.log("Excel Data:", jsonData); // Debugging line
-
-            $scope.$apply(function() {
-                // Save uploaded data
-                $scope.uploadedData = jsonData;
-
-                // Calculate results based on uploaded data and selected semester
-                $scope.results = jsonData.map(student => {
-                    let totalCredits = 0;
-                    let weightedSum = 0;
-
-                    if (!$scope.semesters[$scope.selectedSemester]) {
-                        console.error('No subjects data available for the selected semester.');
-                        return { name: student['Student Name'], sgpa: 'Error' };
-                    }
-
-                    $scope.semesters[$scope.selectedSemester].forEach(subject => {
-                        const gradeText = (student[subject.name] || '').trim().toLowerCase();
-                        const credit = subject.credit;
-
-                        // Convert grade text to grade points
-                        const gradePoints = $scope.gradeMap[gradeText] || 0;
-
-                        console.log(`Processing ${subject.name}: Grade ${gradeText}, Points ${gradePoints}, Credit ${credit}`); // Debugging line
-
-                        weightedSum += gradePoints * credit;
-                        totalCredits += credit;
-                    });
-
-                    let sgpa = totalCredits > 0 ? (weightedSum / totalCredits).toFixed(2) : '0.00';
-                    console.log(`Student: ${student['Student Name']}, SGPA: ${sgpa}`); // Debugging line
-                    return { name: student['Student Name'], sgpa: sgpa };
-                });
-            });
-        };
-
-        reader.readAsBinaryString(file);
-    };
-
-    // Function to download results as an Excel file
-    $scope.downloadResults = function() {
-        if ($scope.results.length === 0) {
-            alert('No results available to download.');
-            return;
-        }
-
-        // Filter out $$hashKey and other unwanted properties
-        const filteredResults = $scope.results.map(result => {
-            const { $$hashKey, ...filteredResult } = result; // Remove $$hashKey
-            return filteredResult;
-        });
-
-        // Prepare data for the Excel file
-        const ws = XLSX.utils.json_to_sheet(filteredResults, {
-            header: ['name', 'sgpa'],
-            skipHeader: false
-        });
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'SGPA Results');
-        
-        // Generate Excel file and trigger download
-        XLSX.writeFile(wb, 'SGPA_Results.xlsx');
-    };
-
-    // Function to download the template as an Excel file
-    $scope.downloadTemplate = function() {
-        if (!$scope.templateHeaders || $scope.templateHeaders.length === 0) {
-            alert('No template available to download.');
-            return;
-        }
-
-        // Prepare data for the Excel file
-        const templateDataForExcel = $scope.templateData.map(row => {
-            const newRow = {};
-            newRow['Student Name'] = row.name;
-            $scope.templateHeaders.forEach(header => {
-                newRow[header] = ''; // Initialize with empty values
-            });
-            return newRow;
-        });
-
-        const ws = XLSX.utils.json_to_sheet(templateDataForExcel);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Semester ' + $scope.selectedSemester + ' Template');
-        
-        // Generate Excel file and trigger download
-        XLSX.writeFile(wb, 'Semester_' + $scope.selectedSemester + '_Template.xlsx');
-    };
+  function convertGradeToPoint(grade) {
+    const map = { 'O': 10, 'A+': 9, 'A': 8, 'B+': 7, 'B': 6, 'C': 5, 'RA': 0, 'SA': 0, 'WH': 0 };
+    return map[grade.trim().toUpperCase()] || 0;
+  }
 });
