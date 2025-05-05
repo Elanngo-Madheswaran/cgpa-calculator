@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="depCreatorApp">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <title>Department JSON Creator</title>
+    <style>
+        .department-card {
+            transition: all 0.2s;
+        }
+        
+        .department-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .cursor-pointer {
+            cursor: pointer;
+        }
+        
+        .subject-row {
+            transition: background-color 0.2s;
+        }
+        
+        .subject-row:hover {
+            background-color: rgba(0, 123, 255, 0.05);
+        }
+        
+        .modal-backdrop.show {
+            opacity: 0.5;
+        }
+        
+        /* Save indicator animation */
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        
+        .save-indicator {
+            animation: fadeInOut 2s ease-in-out;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+    </style>
+</head>
+
+<body ng-controller="departmentCreatorCtrl">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg bg-dark navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <i class="bx bx-building me-2"></i>Department JSON Creator
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="custom.html">
+                            <i class="bx bx-calculator me-2"></i>GPA Calculator
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" 
+                           aria-expanded="false">
+                            <i class="bx bx-import me-1"></i> Import/Export
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="#" ng-click="exportDepartment()">
+                                    <i class="bx bx-export me-2"></i>Export JSON
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#" ng-click="openImportModal()">
+                                    <i class="bx bx-import me-2"></i>Import JSON
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="#" ng-click="contactOwner()">
+                                    <i class="bx bx-mail-send me-2"></i>Contact Owner
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4 mb-5">
+        <div class="row g-4">
+            <!-- Department List Column -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Departments</h5>
+                        <button class="btn btn-sm btn-light" ng-click="createNewDepartment()">
+                            <i class="bx bx-plus"></i> New
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            <a href="#" class="list-group-item list-group-item-action" 
+                               ng-class="{'active': department.id === selectedDepartment.id}"
+                               ng-repeat="department in departments" 
+                               ng-click="selectDepartment(department)">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{department.name}}</h6>
+                                        <small>{{department.code}}</small>
+                                    </div>
+                                    <span class="badge bg-info rounded-pill">
+                                        {{getTotalSemesters(department)}} semesters
+                                    </span>
+                                </div>
+                            </a>
+                            <div class="list-group-item text-center text-muted p-4" ng-if="departments.length === 0">
+                                <i class="bx bx-folder-open fs-1"></i>
+                                <p>No departments created yet</p>
+                                <button class="btn btn-sm btn-primary" ng-click="createNewDepartment()">
+                                    <i class="bx bx-plus"></i> Create Department
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Department Editor Column -->
+            <div class="col-lg-8">
+                <!-- Department Details -->
+                <div class="card mb-4" ng-if="selectedDepartment">
+                    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Department Details</h5>
+                        <div>
+                            <button class="btn btn-sm btn-outline-light me-2" ng-click="previewJSON()" title="Preview JSON structure">
+                                <i class="bx bx-code-alt"></i> Preview JSON
+                            </button>
+                            <button class="btn btn-sm btn-light me-2" ng-click="saveDepartment()">
+                                <i class="bx bx-save"></i> Save
+                            </button>
+                            <button class="btn btn-sm btn-danger" ng-click="deleteDepartment()">
+                                <i class="bx bx-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Department Name</label>
+                                <input type="text" class="form-control" ng-model="selectedDepartment.name" placeholder="e.g. Computer Science">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Department Code</label>
+                                <input type="text" class="form-control" ng-model="selectedDepartment.code" placeholder="e.g. CSE">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" ng-model="selectedDepartment.description" rows="2" placeholder="Brief description of the department"></textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Programs -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">Programs</h6>
+                                <button class="btn btn-sm btn-light" ng-click="addProgram()">
+                                    <i class="bx bx-plus"></i> Add Program
+                                </button>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="accordion" id="programsAccordion">
+                                    <div class="accordion-item" ng-repeat="program in selectedDepartment.programs">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button" type="button" data-bs-toggle="collapse" 
+                                                    data-bs-target="#program{{$index}}" 
+                                                    aria-expanded="{{$index === 0}}" aria-controls="program{{$index}}">
+                                                {{program.name || 'Unnamed Program'}}
+                                                <span class="badge bg-primary ms-2">{{program.degree || 'No Degree'}}</span>
+                                            </button>
+                                        </h2>
+                                        <div id="program{{$index}}" class="accordion-collapse collapse" 
+                                             data-bs-parent="#programsAccordion">
+                                            <div class="accordion-body">
+                                                <div class="row g-3 mb-3">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Program Name</label>
+                                                        <input type="text" class="form-control" ng-model="program.name" placeholder="e.g. B.Tech">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Degree</label>
+                                                        <input type="text" class="form-control" ng-model="program.degree" placeholder="e.g. Bachelor of Technology">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Duration (Years)</label>
+                                                        <input type="number" class="form-control" ng-model="program.duration" min="1" max="6">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Total Semesters</label>
+                                                        <input type="number" class="form-control" ng-model="program.totalSemesters" min="1" max="12">
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Semesters -->
+                                                <div class="card">
+                                                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                                        <h6 class="mb-0">Semesters</h6>
+                                                        <button class="btn btn-sm btn-primary" ng-click="generateSemesters(program)">
+                                                            <i class="bx bx-list-plus"></i> Generate Semesters
+                                                        </button>
+                                                    </div>
+                                                    <div class="card-body p-0">
+                                                        <div class="accordion" id="semestersAccordion{{$parent.$index}}">
+                                                            <div class="accordion-item" ng-repeat="semester in program.semesters">
+                                                                <h2 class="accordion-header">
+                                                                    <button class="accordion-button collapsed" type="button" 
+                                                                            data-bs-toggle="collapse" 
+                                                                            data-bs-target="#semester{{$parent.$index}}_{{$index}}" 
+                                                                            aria-expanded="false" 
+                                                                            aria-controls="semester{{$parent.$index}}_{{$index}}">
+                                                                        {{semester.name || 'Semester ' + ($index + 1)}}
+                                                                        <span class="badge bg-success ms-2">{{semester.subjects.length}} subjects</span>
+                                                                    </button>
+                                                                </h2>
+                                                                <div id="semester{{$parent.$index}}_{{$index}}" 
+                                                                     class="accordion-collapse collapse" 
+                                                                     data-bs-parent="#semestersAccordion{{$parent.$parent.$index}}">
+                                                                    <div class="accordion-body">
+                                                                        <div class="row g-3 mb-3">
+                                                                            <div class="col-md-12">
+                                                                                <label class="form-label">Semester Name</label>
+                                                                                <input type="text" class="form-control" 
+                                                                                       ng-model="semester.name" 
+                                                                                       placeholder="e.g. Semester 1">
+                                                                            </div>
+                                                                        </div>
+                                                                        
+                                                                        <!-- Subjects -->
+                                                                        <div class="table-responsive">
+                                                                            <table class="table table-bordered">
+                                                                                <thead class="table-light">
+                                                                                    <tr>
+                                                                                        <th style="width: 20%">Code</th>
+                                                                                        <th style="width: 40%">Subject Name</th>
+                                                                                        <th style="width: 15%">Credits</th>
+                                                                                        <th style="width: 15%">Grade Type</th>
+                                                                                        <th style="width: 10%">Actions</th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody>
+                                                                                    <tr ng-repeat="subject in semester.subjects" class="subject-row">
+                                                                                        <td>
+                                                                                            <input type="text" class="form-control" 
+                                                                                                   ng-model="subject.code" 
+                                                                                                   placeholder="e.g. CS101">
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <input type="text" class="form-control" 
+                                                                                                   ng-model="subject.name" 
+                                                                                                   placeholder="e.g. Introduction to Programming">
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <input type="number" class="form-control" 
+                                                                                                   ng-model="subject.credits" 
+                                                                                                   min="0.5" max="10" step="0.5">
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <select class="form-select" ng-model="subject.gradeType">
+                                                                                                <option value="10point">10-Point Scale</option>
+                                                                                                <option value="standard">Standard (A-F)</option>
+                                                                                                <option value="custom">Custom</option>
+                                                                                            </select>
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <button class="btn btn-sm btn-danger" 
+                                                                                                    ng-click="removeSubject(semester, $index)">
+                                                                                                <i class="bx bx-trash"></i>
+                                                                                            </button>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </tbody>
+                                                                                <tfoot>
+                                                                                    <tr>
+                                                                                        <td colspan="5">
+                                                                                            <button class="btn btn-sm btn-success w-100" 
+                                                                                                    ng-click="addSubject(semester)">
+                                                                                                <i class="bx bx-plus"></i> Add Subject
+                                                                                            </button>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </tfoot>
+                                                                            </table>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="d-flex justify-content-end mt-3">
+                                                    <button class="btn btn-danger" ng-click="removeProgram($index)">
+                                                        <i class="bx bx-trash"></i> Remove Program
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Welcome message when no department is selected -->
+                <div class="card h-100 text-center" ng-if="!selectedDepartment">
+                    <div class="card-body d-flex flex-column justify-content-center align-items-center" style="min-height: 300px;">
+                        <i class="bx bx-building fs-1 text-primary mb-3"></i>
+                        <h4>Welcome to Department JSON Creator</h4>
+                        <p class="text-muted">Select a department from the list or create a new one to get started.</p>
+                        <button class="btn btn-primary mt-3" ng-click="createNewDepartment()">
+                            <i class="bx bx-plus"></i> Create New Department
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Import Modal -->
+    <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="importModalLabel">Import JSON</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Select a JSON file to import. The file should follow the legacy format with semesters as the main key.</p>
+                    <div class="mb-3">
+                        <label for="importFile" class="form-label">Select JSON File</label>
+                        <input class="form-control" type="file" id="importFile" accept=".json">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" ng-click="importJSON()">Import</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Owner Modal -->
+    <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="contactModalLabel">Contact Owner</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Is your department JSON structure complete and ready to be included in the main application?</p>
+                    <p>The owner will review your submission and add it to the application.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <a href="#" class="btn btn-success" ng-click="sendEmail()">
+                        <i class="bx bx-mail-send"></i> Contact Owner
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Preview Modal -->
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title" id="previewModalLabel">JSON Preview</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <pre class="bg-light p-3 rounded"><code>{{jsonPreview}}</code></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" ng-click="copyToClipboard()">
+                        <i class="bx bx-clipboard"></i> Copy to Clipboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Indicator -->
+    <div class="toast save-indicator align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" 
+         aria-atomic="true" ng-show="showSaveIndicator">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bx bx-check"></i> Changes saved successfully!
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="create-json.js"></script>
+</body>
+
+</html>
