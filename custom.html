@@ -110,32 +110,45 @@
         </div>
     </div>
 
-    <!-- Update the navbar to include a more visible role switcher button -->
-    <nav class="navbar navbar-expand-lg bg-body-tertiary text-center">
+    <!-- Replace the existing navbar with this unified navigation -->
+    <nav class="navbar navbar-expand-lg bg-dark navbar-dark">
         <div class="container-fluid">
-            <a class="navbar-brand fw-bold fs-3" href="index.html">GPA Calculator</a>
-            <div class="d-flex align-items-center">
-                <span class="badge rounded-pill me-3" ng-class="{'bg-primary': userRole === 'teacher', 'bg-success': userRole === 'student'}">
-                    <i class="bx" ng-class="{'bx-chalkboard': userRole === 'teacher', 'bx-user-circle': userRole === 'student'}"></i>
-                    {{userRole === 'teacher' ? 'Teacher Mode' : 'Student Mode'}}
-                </span>
-                <button class="btn btn-sm btn-outline-secondary d-none d-md-block me-3" ng-click="switchRole()">
-                    <i class="bx bx-transfer"></i> Switch Mode
-                </button>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
-                    aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-            </div>
-            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-                <div class="navbar-nav ms-auto">
-                    <button class="btn btn-sm btn-outline-secondary d-block d-md-none mb-2" ng-click="switchRole()">
-                        <i class="bx bx-transfer"></i> Switch Mode
-                    </button>
-                    <a href="create-json.html" class="btn btn-sm btn-outline-info">
-                        <i class="bx bx-building"></i> Department Creator
-                    </a>
-                </div>
+            <a class="navbar-brand fw-bold" href="index.html">
+                <i class="bx bx-calculator me-2"></i>GPA Calculator
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="custom.html">
+                            <i class="bx bx-calculator me-2"></i>Custom upload
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="upload.html">
+                            <i class="bx bx-file me-2"></i>Excel Upload
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="create-json.html">
+                            <i class="bx bx-building me-2"></i>Department Creator
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <span class="badge rounded-pill me-3 mt-2" ng-class="{'bg-primary': userRole === 'teacher', 'bg-success': userRole === 'student'}">
+                            <i class="bx" ng-class="{'bx-chalkboard': userRole === 'teacher', 'bx-user-circle': userRole === 'student'}"></i>
+                            {{userRole === 'teacher' ? 'Teacher Mode' : 'Student Mode'}}
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn btn-sm btn-outline-light" ng-click="switchRole()">
+                            <i class="bx bx-transfer"></i> Switch Mode
+                        </button>
+                    </li>
+                </ul>
             </div>
         </div>
     </nav>
@@ -497,11 +510,8 @@
                                                 placeholder="Credits" min="1" max="10" step="0.5">
                                         </td>
                                         <td>
-                                            <select class="form-select" ng-model="subjects[$index].gradeType">
-                                                <option value="10point">10 Point Scale</option>
-                                                <option value="standard">Standard (A, B, C, D, F)</option>
-                                                <option value="custom">Custom Scale</option>
-                                            </select>
+                                            <input type="text" class="form-control-plaintext" value="10 Point Scale" readonly>
+                                            <input type="hidden" ng-model="subjects[$index].gradeType" ng-init="subjects[$index].gradeType = '10point'">
                                         </td>
                                     </tr>
                                 </tbody>

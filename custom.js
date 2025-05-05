@@ -295,6 +295,28 @@ app.controller('customGpaCtrl', function($scope) {
         }
     });
 
+    // Update the watchNumSubjects function for student mode
+
+    $scope.$watch('numSubjects', function(newVal, oldVal) {
+        // Skip if no change or invalid values
+        if (newVal === oldVal || isNaN(newVal) || newVal < 0) return;
+
+        // Adjust array size
+        if ($scope.subjects.length > newVal) {
+            // Remove extra subjects
+            $scope.subjects.splice(newVal);
+        } else if ($scope.subjects.length < newVal) {
+            // Add new subjects with fixed 10-point grading
+            for (let i = $scope.subjects.length; i < newVal; i++) {
+                $scope.subjects.push({
+                    name: '',
+                    credits: 3,
+                    gradeType: '10point'  // Always use 10-point scale
+                });
+            }
+        }
+    });
+
     // Navigation between steps (from original)
     $scope.goToStep = function(stepNumber) {
         // Validation before proceeding
