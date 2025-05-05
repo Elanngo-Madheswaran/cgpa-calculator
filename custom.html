@@ -252,6 +252,7 @@
                                                 <table class="table table-bordered">
                                                     <thead>
                                                         <tr>
+                                                            <th>Subject Code</th>
                                                             <th>Subject Name</th>
                                                             <th>Credit</th>
                                                             <th>Grade Scale</th>
@@ -259,6 +260,10 @@
                                                     </thead>
                                                     <tbody>
                                                         <tr ng-repeat="i in getNumberArray(semester.numSubjects) track by $index">
+                                                            <td>
+                                                                <input type="text" class="form-control" ng-model="semester.subjects[$index].code" 
+                                                                    placeholder="CODE{{$index + 1}}">
+                                                            </td>
                                                             <td>
                                                                 <input type="text" class="form-control" ng-model="semester.subjects[$index].name" 
                                                                     placeholder="Subject {{$index + 1}}">
@@ -326,22 +331,19 @@
                     </button>
                 </div>
                 <div class="card-body">
-                    <!-- Select Semesters for Calculation -->
-                    <div class="mb-4">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h5>Select Semesters for Calculation</h5>
-                            <button class="btn btn-sm btn-outline-success" ng-click="toggleAllSemesters()">
-                                <i class="bx bx-check-double"></i> {{allSemestersSelected ? 'Deselect All' : 'Select All'}}
-                            </button>
-                        </div>
-                        <div class="form-check" ng-repeat="semester in calculationBatch.semesters">
-                            <input class="form-check-input" type="checkbox" ng-model="semester.includeInCalculation" 
-                                id="semCheck{{$index}}" ng-disabled="!semester.hasSubjects">
-                            <label class="form-check-label" for="semCheck{{$index}}">
-                                {{semester.name}} 
-                                <span class="badge bg-secondary" ng-if="!semester.hasSubjects">No subjects</span>
-                            </label>
-                        </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5>Select Semesters for Calculation</h5>
+                        <button class="btn btn-sm btn-outline-success" ng-click="toggleAllSemesters()">
+                            <i class="bx bx-check-double"></i> {{allSemestersSelected ? 'Deselect All' : 'Select All'}}
+                        </button>
+                    </div>
+                    <div class="form-check" ng-repeat="semester in calculationBatch.semesters">
+                        <input class="form-check-input" type="checkbox" ng-model="semester.includeInCalculation" 
+                            id="semCheck{{$index}}" ng-disabled="!semester.hasSubjects">
+                        <label class="form-check-label" for="semCheck{{$index}}">
+                            {{semester.name}} 
+                            <span class="badge bg-secondary" ng-if="!semester.hasSubjects">No subjects</span>
+                        </label>
                     </div>
 
                     <!-- Generate template button -->
@@ -386,7 +388,7 @@
                                         data-bs-target="#sem{{$index}}" type="button" role="tab" aria-selected="false">{{semester.name}}</button>
                                 </li>
                             </ul>
-                            
+
                             <div class="tab-content" id="resultsTabContent">
                                 <!-- CGPA Tab -->
                                 <div class="tab-pane fade show active" id="cgpa" role="tabpanel" aria-labelledby="cgpa-tab">
@@ -396,7 +398,9 @@
                                                 <tr>
                                                     <th>Roll No</th>
                                                     <th>Student Name</th>
-                                                    <th ng-repeat="semester in getSelectedSemesters() track by $index">{{semester.name}}</th>
+                                                    <th ng-repeat="semester in getSelectedSemesters() track by $index">
+                                                        {{semester.name || 'Semester ' + ($index+1)}}
+                                                    </th>
                                                     <th>CGPA</th>
                                                 </tr>
                                             </thead>
@@ -413,7 +417,7 @@
                                         </table>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Semester Tabs -->
                                 <div class="tab-pane fade" id="sem{{$index}}" role="tabpanel" 
                                      aria-labelledby="sem{{$index}}-tab" ng-repeat="(semIndex, semester) in getSelectedSemesters() track by $index">
@@ -423,7 +427,9 @@
                                                 <tr>
                                                     <th>Roll No</th>
                                                     <th>Student Name</th>
-                                                    <th ng-repeat="subject in semester.subjects track by $index">{{subject.name}}</th>
+                                                    <th ng-repeat="subject in semester.subjects track by $index">
+                                                        {{subject.code ? subject.code : 'CODE'}} - {{subject.name ? subject.name : 'Subject ' + ($index+1)}}
+                                                    </th>
                                                     <th>GPA</th>
                                                 </tr>
                                             </thead>
@@ -489,8 +495,8 @@
                                         </td>
                                         <td>
                                             <select class="form-select" ng-model="subjects[$index].gradeType">
-                                                <option value="standard">Standard (A, B, C, D, F)</option>
                                                 <option value="10point">10 Point Scale</option>
+                                                <option value="standard">Standard (A, B, C, D, F)</option>
                                                 <option value="custom">Custom Scale</option>
                                             </select>
                                         </td>
@@ -498,7 +504,6 @@
                                 </tbody>
                             </table>
                         </div>
-                        
                         <button class="btn btn-primary mt-3" ng-click="goToStep(2)">Next</button>
                     </div>
                 </div>

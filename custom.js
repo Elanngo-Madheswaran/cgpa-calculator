@@ -164,24 +164,30 @@ app.controller('customGpaCtrl', function($scope) {
     
     // Adjust the subjects array when numSubjects changes
     function adjustSemesterSubjects(semester) {
+        // Make sure numSubjects is at least 0
+        if (isNaN(semester.numSubjects) || semester.numSubjects < 0) {
+            semester.numSubjects = 0;
+        }
+    
+        // Initialize subjects array if needed
         if (!semester.subjects) {
             semester.subjects = [];
         }
-        
-        const numSubjects = parseInt(semester.numSubjects || 0);
-        
-        if (numSubjects > semester.subjects.length) {
+    
+        // Adjust array size
+        if (semester.subjects.length > semester.numSubjects) {
+            // Remove extra subjects
+            semester.subjects.splice(semester.numSubjects);
+        } else if (semester.subjects.length < semester.numSubjects) {
             // Add new subjects
-            for (let i = semester.subjects.length; i < numSubjects; i++) {
+            for (let i = semester.subjects.length; i < semester.numSubjects; i++) {
                 semester.subjects.push({
-                    name: 'Subject ' + (i + 1),
+                    code: '',              // Initialize with empty code
+                    name: '',
                     credits: 3,
-                    gradeType: '10point'
+                    gradeType: '10point'  // Default to 10-point scale
                 });
             }
-        } else if (numSubjects < semester.subjects.length) {
-            // Remove excess subjects
-            semester.subjects = semester.subjects.slice(0, numSubjects);
         }
     }
     
@@ -270,20 +276,21 @@ app.controller('customGpaCtrl', function($scope) {
 
     // Watch for changes in number of subjects (original behavior)
     $scope.$watch('numSubjects', function(newVal, oldVal) {
-        if (newVal !== oldVal) {
-            // Resize the subjects array
-            if (newVal > oldVal) {
-                // Add new subjects
-                for (let i = oldVal; i < newVal; i++) {
-                    $scope.subjects.push({
-                        name: 'Subject ' + (i + 1),
-                        credits: 3,
-                        gradeType: '10point' // Changed default to 10point
-                    });
-                }
-            } else if (newVal < oldVal) {
-                // Remove excess subjects
-                $scope.subjects = $scope.subjects.slice(0, newVal);
+        // Skip if no change or invalid values
+        if (newVal === oldVal || isNaN(newVal) || newVal < 0) return;
+
+        // Adjust array size
+        if ($scope.subjects.length > newVal) {
+            // Remove extra subjects
+            $scope.subjects.splice(newVal);
+        } else if ($scope.subjects.length < newVal) {
+            // Add new subjects
+            for (let i = $scope.subjects.length; i < newVal; i++) {
+                $scope.subjects.push({
+                    name: '',
+                    credits: 3,
+                    gradeType: '10point'  // Default to 10-point scale
+                });
             }
         }
     });
@@ -690,7 +697,7 @@ app.controller('customGpaCtrl', function($scope) {
         return $scope.calculationBatch.semesters.filter(sem => sem.includeInCalculation && sem.hasSubjects);
     };
 
-    // Modify the generateBatchTemplate function
+    // Update the generateBatchTemplate function to include subject codes
 
     $scope.generateBatchTemplate = function() {
         const selectedSemesters = $scope.getSelectedSemesters();
@@ -718,9 +725,11 @@ app.controller('customGpaCtrl', function($scope) {
             
             hasSubjects = true;
             
-            // Add subject names to headers
+            // Add subject names to headers with codes if available
             semester.subjects.forEach(subject => {
-                headers.push(subject.name || 'Unnamed Subject');
+                const subjectCode = subject.code || '';
+                const subjectName = subject.name || 'Unnamed Subject';
+                headers.push(subjectCode ? `${subjectCode} - ${subjectName}` : subjectName);
             });
             
             // Create worksheet with headers and example row
@@ -1015,7 +1024,9 @@ app.controller('customGpaCtrl', function($scope) {
         selectedSemesters.forEach((semester, semIndex) => {
             const semHeaders = ['Roll No', 'Student Name'];
             semester.subjects.forEach(subject => {
-                semHeaders.push(subject.name || 'Unnamed');
+                const subjectCode = subject.code || '';
+                const subjectName = subject.name || 'Unnamed Subject';
+                semHeaders.push(subjectCode ? `${subjectCode} - ${subjectName}` : subjectName);
             });
             semHeaders.push('GPA');
             
