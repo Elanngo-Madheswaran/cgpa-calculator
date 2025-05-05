@@ -14,8 +14,21 @@ app.controller('customGpaCtrl', function($scope) {
     $scope.selectedBatch = null;
     $scope.importModal = null;
     
+    // Add these variables at the beginning of the controller function
+    $scope.userRole = null; // 'teacher' or 'student'
+    $scope.showRoleSelector = false;
+
     // Initialize application
     function init() {
+        // Check if user role is stored in local storage
+        const savedRole = localStorage.getItem('gpaCalculatorRole');
+        if (savedRole) {
+            $scope.userRole = savedRole;
+        } else {
+            // Show role selector on first visit
+            $scope.showRoleSelector = true;
+        }
+        
         // Load saved batches from local storage
         loadBatchesFromStorage();
         
@@ -1076,6 +1089,55 @@ app.controller('customGpaCtrl', function($scope) {
             console.log(data);
         }
     }
+
+    // Select user role function
+    $scope.rememberRoleChoice = false;
+
+    // Select user role function
+    $scope.selectRole = function(role, remember) {
+        // If no role was passed, use the selected card
+        role = role || $scope.selectedRoleCard;
+        
+        if (!role) return;
+        
+        $scope.userRole = role;
+        $scope.showRoleSelector = false;
+        
+        // Reset UI state when switching modes
+        if (role === 'teacher') {
+            // Reset student mode states
+            $scope.step = 1;
+            $scope.numSubjects = 0;
+            $scope.subjects = [];
+            $scope.uploadedFile = null;
+            $scope.results = [];
+        } else {
+            // Reset teacher mode states
+            $scope.calculationBatch = null;
+            $scope.selectedBatch = null;
+        }
+        
+        if (remember || $scope.rememberRoleChoice) {
+            // Save role preference to local storage
+            localStorage.setItem('gpaCalculatorRole', role);
+        }
+    };
+
+    // Switch user role function
+    $scope.switchRole = function() {
+        // Clear the saved role if it exists
+        localStorage.removeItem('gpaCalculatorRole');
+        $scope.showRoleSelector = true;
+        $scope.rememberRoleChoice = false;
+    };
+
+    // Add these functions to make the role selection cards more interactive
+
+    $scope.selectedRoleCard = null;
+
+    $scope.selectRoleCard = function(role) {
+        $scope.selectedRoleCard = role;
+    };
 
     // Initialize the application
     init();
