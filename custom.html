@@ -9,6 +9,30 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <title>Custom GPA Calculator</title>
+    <style>
+        .semester-gpa {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #198754;
+        }
+        
+        .accordion-button:not(.collapsed) {
+            background-color: rgba(25, 135, 84, 0.1);
+        }
+        
+        .batch-action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .batch-action-buttons {
+                margin-top: 0.5rem;
+                justify-content: flex-end;
+            }
+        }
+    </style>
 </head>
 
 <body ng-controller="customGpaCtrl">
@@ -31,6 +55,312 @@
     <div class="container mt-4">
         <h1 class="text-center mb-4">Custom GPA Calculator</h1>
 
+        <!-- Batch Management Section -->
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Batch Management</h4>
+                <div>
+                    <button class="btn btn-sm btn-outline-light me-2" ng-click="exportBatches()">
+                        <i class="bx bx-export"></i> Export Batches
+                    </button>
+                    <button class="btn btn-sm btn-outline-light" ng-click="openImportModal()">
+                        <i class="bx bx-import"></i> Import Batches
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5>Saved Batches</h5>
+                    <button class="btn btn-primary btn-sm" ng-click="addNewBatch()">
+                        <i class="bx bx-plus"></i> Add New Batch
+                    </button>
+                </div>
+                
+                <!-- Batch List -->
+                <div class="list-group mb-4" ng-show="batches.length > 0">
+                    <div class="list-group-item list-group-item-action" 
+                        ng-repeat="batch in batches" 
+                        ng-class="{'active': selectedBatch.id === batch.id}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{batch.name}} ({{batch.semesters.length}} semesters)</h6>
+                                <small>Last modified: {{batch.lastModified | date:'medium'}}</small>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-success me-2" ng-click="useBatchForCalculation(batch)">
+                                    <i class="bx bx-calculator"></i> Use This Batch
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary me-2" ng-click="selectBatch(batch)">
+                                    <i class="bx bx-edit"></i> Edit
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" ng-click="deleteBatch(batch)">
+                                    <i class="bx bx-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info" ng-show="batches.length === 0">
+                    No batches created yet. Add a new batch to get started.
+                </div>
+            </div>
+        </div>
+
+        <!-- Batch Editor Section (visible when a batch is selected or being created) -->
+        <div class="card mb-4" ng-if="selectedBatch">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Editing: {{selectedBatch.name}}</h4>
+            </div>
+            <div class="card-body">
+                <!-- Batch Details -->
+                <div class="mb-3">
+                    <label for="batchName" class="form-label">Batch Name:</label>
+                    <input type="text" id="batchName" class="form-control" ng-model="selectedBatch.name" placeholder="Enter batch name">
+                </div>
+                
+                <!-- Semesters -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5>Semesters</h5>
+                        <button class="btn btn-sm btn-outline-primary" ng-click="addNewSemester()">
+                            <i class="bx bx-plus"></i> Add Semester
+                        </button>
+                    </div>
+                    
+                    <!-- Semester Accordion -->
+                    <div class="accordion" id="semestersAccordion">
+                        <div class="accordion-item" ng-repeat="semester in selectedBatch.semesters">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#semester{{$index}}" ng-class="{'collapsed': !semester.isOpen}">
+                                    Semester {{$index + 1}}: {{semester.name || 'Unnamed'}}
+                                </button>
+                            </h2>
+                            <div id="semester{{$index}}" class="accordion-collapse collapse" ng-class="{'show': semester.isOpen}">
+                                <div class="accordion-body">
+                                    <!-- Semester Details -->
+                                    <div class="mb-3">
+                                        <label class="form-label">Semester Name:</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" ng-model="semester.name" placeholder="e.g. Fall 2024">
+                                            <button class="btn btn-outline-danger" ng-click="deleteSemester($index)">
+                                                <i class="bx bx-trash"></i> Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Subjects for this semester -->
+                                    <div class="mb-3">
+                                        <label class="form-label">Number of Subjects:</label>
+                                        <input type="number" class="form-control" ng-model="semester.numSubjects" min="1" max="20">
+                                    </div>
+                                    
+                                    <div ng-if="semester.numSubjects > 0">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Subject Name</th>
+                                                        <th>Credit</th>
+                                                        <th>Grade Scale</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr ng-repeat="i in getNumberArray(semester.numSubjects) track by $index">
+                                                        <td>
+                                                            <input type="text" class="form-control" ng-model="semester.subjects[$index].name" 
+                                                                placeholder="Subject {{$index + 1}}">
+                                                        </td>
+                                                        <td>
+                                                            <input type="number" class="form-control" ng-model="semester.subjects[$index].credits" 
+                                                                placeholder="Credits" min="1" max="10" step="0.5">
+                                                        </td>
+                                                        <td>
+                                                            <select class="form-select" ng-model="semester.subjects[$index].gradeType">
+                                                                <option value="standard">Standard (A, B, C, D, F)</option>
+                                                                <option value="10point">10 Point Scale</option>
+                                                                <option value="custom">Custom Scale</option>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <button class="btn btn-success" ng-click="saveBatch()">Save Batch</button>
+                    <button class="btn btn-secondary ms-2" ng-click="cancelBatchEdit()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import/Export Modal -->
+        <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="importModalLabel">Import Batches</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="importFile" class="form-label">Choose JSON file with batch data:</label>
+                            <input type="file" class="form-control" id="importFile" accept=".json">
+                        </div>
+                        <div class="alert alert-warning">
+                            <strong>Warning:</strong> Importing will replace your current batch settings!
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" ng-click="importBatches()">Import</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Batch Calculator Section -->
+        <div class="card mb-4" ng-if="calculationBatch">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Calculate CGPA: {{calculationBatch.name}}</h4>
+                <button class="btn btn-sm btn-outline-light" ng-click="cancelBatchCalculation()">
+                    <i class="bx bx-x"></i> Close
+                </button>
+            </div>
+            <div class="card-body">
+                <!-- Select Semesters for Calculation -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5>Select Semesters for Calculation</h5>
+                        <button class="btn btn-sm btn-outline-success" ng-click="toggleAllSemesters()">
+                            <i class="bx bx-check-double"></i> {{allSemestersSelected ? 'Deselect All' : 'Select All'}}
+                        </button>
+                    </div>
+                    <div class="form-check" ng-repeat="semester in calculationBatch.semesters">
+                        <input class="form-check-input" type="checkbox" ng-model="semester.includeInCalculation" 
+                            id="semCheck{{$index}}" ng-disabled="!semester.hasSubjects">
+                        <label class="form-check-label" for="semCheck{{$index}}">
+                            {{semester.name}} 
+                            <span class="badge bg-secondary" ng-if="!semester.hasSubjects">No subjects</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Generate template button -->
+                <div class="mb-4" ng-show="getSelectedSemesters().length > 0">
+                    <button class="btn btn-primary" ng-click="generateBatchTemplate()">
+                        <i class="bx bx-file"></i> Generate Excel Template
+                    </button>
+                    <span class="ms-2 text-muted">Generate template for the selected semesters</span>
+                </div>
+
+                <!-- Template Upload Section -->
+                <div class="card mb-4" ng-if="templateGenerated">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Upload Completed Template</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Upload the Excel file with student grades that you've filled out:</p>
+                        <div class="mb-3">
+                            <input type="file" id="batchFileInput" class="form-control" accept=".xlsx" 
+                                onchange="angular.element(this).scope().handleBatchFileUpload(this)">
+                        </div>
+                        <button class="btn btn-primary" ng-click="processBatchUpload()" ng-disabled="!batchUploadedFile">
+                            <i class="bx bx-calculator"></i> Calculate
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Batch Results Section -->
+                <div class="card mb-4" ng-if="batchResults.length > 0">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Calculation Results</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Tabs for different semesters and CGPA -->
+                        <ul class="nav nav-tabs mb-3" id="resultsTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="cgpa-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#cgpa" type="button" role="tab" aria-selected="true">CGPA</button>
+                            </li>
+                            <li class="nav-item" role="presentation" ng-repeat="semester in getSelectedSemesters() track by $index">
+                                <button class="nav-link" id="sem{{$index}}-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#sem{{$index}}" type="button" role="tab" aria-selected="false">{{semester.name}}</button>
+                            </li>
+                        </ul>
+                        
+                        <div class="tab-content" id="resultsTabContent">
+                            <!-- CGPA Tab -->
+                            <div class="tab-pane fade show active" id="cgpa" role="tabpanel" aria-labelledby="cgpa-tab">
+                                <div class="table-responsive">
+                                    <table class="table table-success table-striped table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Roll No</th>
+                                                <th>Student Name</th>
+                                                <th ng-repeat="semester in getSelectedSemesters() track by $index">{{semester.name}}</th>
+                                                <th>CGPA</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr ng-repeat="result in batchResults">
+                                                <td>{{result.rollNo}}</td>
+                                                <td>{{result.studentName}}</td>
+                                                <td ng-repeat="semester in getSelectedSemesters() track by $index">
+                                                    {{result.semesterGPAs[$index] || 'N/A'}}
+                                                </td>
+                                                <td class="fw-bold">{{result.cgpa}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Semester Tabs -->
+                            <div class="tab-pane fade" id="sem{{$index}}" role="tabpanel" 
+                                 aria-labelledby="sem{{$index}}-tab" ng-repeat="(semIndex, semester) in getSelectedSemesters() track by $index">
+                                <div class="table-responsive">
+                                    <table class="table table-info table-striped table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Roll No</th>
+                                                <th>Student Name</th>
+                                                <th ng-repeat="subject in semester.subjects track by $index">{{subject.name}}</th>
+                                                <th>GPA</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr ng-repeat="result in batchResults">
+                                                <td>{{result.rollNo}}</td>
+                                                <td>{{result.studentName}}</td>
+                                                <td ng-repeat="subject in semester.subjects track by $index">
+                                                    {{result.semesterGrades[semIndex][$index] || 'N/A'}}
+                                                </td>
+                                                <td class="fw-bold">{{result.semesterGPAs[semIndex] || 'N/A'}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <button class="btn btn-primary" ng-click="downloadBatchResults()">
+                                <i class="bx bx-download"></i> Download Results
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- Step 1: Configure Subjects -->
         <div class="card mb-4" ng-hide="step > 1">
             <div class="card-header bg-primary text-white">
@@ -191,7 +521,8 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="custom.js"></script>
 </body>
 
-</html></div>
+</html>
